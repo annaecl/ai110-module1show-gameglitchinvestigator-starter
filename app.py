@@ -8,8 +8,7 @@ def get_range_for_difficulty(difficulty: str):
         return 1, 100
     if difficulty == "Hard":
         return 1, 50
-    return 1, 100
-
+    return 1, 100 #this should be eliminated and an exception should be raided 
 
 def parse_guess(raw: str):
     if raw is None:
@@ -20,13 +19,13 @@ def parse_guess(raw: str):
 
     try:
         if "." in raw:
-            value = int(float(raw))
+            value = int(float(raw)) #this could be risky -- raw may not be a float 
         else:
-            value = int(raw)
+            value = int(raw) 
     except Exception:
-        return False, None, "That is not a number."
+        return False, None, "That is not a number." #this should account for it, but I should check 
 
-    return True, value, None
+    return True, value, None #default case 
 
 
 def check_guess(guess, secret):
@@ -38,7 +37,7 @@ def check_guess(guess, secret):
             return "Too High", "📈 Go HIGHER!"
         else:
             return "Too Low", "📉 Go LOWER!"
-    except TypeError:
+    except TypeError: #assumes that parse_guess has already run...
         g = str(guess)
         if g == secret:
             return "Win", "🎉 Correct!"
@@ -49,11 +48,13 @@ def check_guess(guess, secret):
 
 def update_score(current_score: int, outcome: str, attempt_number: int):
     if outcome == "Win":
-        points = 100 - 10 * (attempt_number + 1)
+        points = 100 - 10 * (attempt_number + 1)  
         if points < 10:
             points = 10
         return current_score + points
 
+    # FIXME: this does nothing productive, and is arbitrary. There should be equal penalties for high/low guesses
+    #the below section is arbitary...
     if outcome == "Too High":
         if attempt_number % 2 == 0:
             return current_score + 5
@@ -92,8 +93,9 @@ st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
+#FIXME : attemps should start at 0, not 1 
 if "attempts" not in st.session_state:
-    st.session_state.attempts = 1
+    st.session_state.attempts = 0 
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -132,9 +134,18 @@ with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
 if new_game:
+    # Reset attempt counter so the player starts fresh
     st.session_state.attempts = 0
-    st.session_state.secret = random.randint(1, 100)
+    # Generate a new secret using the current difficulty's range (not hardcoded 1–100)
+    st.session_state.secret = random.randint(low, high)
+    # Reset score so it doesn't carry over from the previous game
+    st.session_state.score = 0
+    # Reset status to "playing" so the game loop is active again
+    st.session_state.status = "playing"
+    # Clear guess history from the previous game
+    st.session_state.history = []
     st.success("New game started.")
+    # Rerun the app to reflect the fresh state immediately
     st.rerun()
 
 if st.session_state.status != "playing":
@@ -155,6 +166,8 @@ if submit:
     else:
         st.session_state.history.append(guess_int)
 
+        # FIXME: Logic breaks here, this seems like an arbitrary mistake 
+        # (why would you only convert to a string sometimes? It should never be a string )
         if st.session_state.attempts % 2 == 0:
             secret = str(st.session_state.secret)
         else:
