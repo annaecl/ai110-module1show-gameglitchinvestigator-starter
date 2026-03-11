@@ -47,22 +47,22 @@ def check_guess(guess, secret):
 
 
 def update_score(current_score: int, outcome: str, attempt_number: int):
+    # Award points for a correct guess; reward fewer attempts with higher points.
+    # Points decrease by 10 for each attempt made, with a floor of 10 so the
+    # player always gains something for an eventual correct guess.
     if outcome == "Win":
-        points = 100 - 10 * (attempt_number + 1)  
+        points = 100 - 10 * (attempt_number + 1)
         if points < 10:
             points = 10
         return current_score + points
 
-    # FIXME: this does nothing productive, and is arbitrary. There should be equal penalties for high/low guesses
-    #the below section is arbitary...
-    if outcome == "Too High":
-        if attempt_number % 2 == 0:
-            return current_score + 5
+    # Any incorrect guess (too high or too low) costs 5 points equally.
+    # Previously, "Too High" had inconsistent logic that sometimes added points
+    # on even-numbered attempts — that bug has been fixed here.
+    if outcome == "Too High" or outcome == "Too Low":
         return current_score - 5
 
-    if outcome == "Too Low":
-        return current_score - 5
-
+    # Unknown outcome — score is unchanged
     return current_score
 
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")

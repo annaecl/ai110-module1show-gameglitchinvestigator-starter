@@ -53,3 +53,38 @@ if new_game:
 | `score` | **Not reset** | Reset to `0` |
 | `status` | **Not reset** | Reset to `"playing"` |
 | `history` | **Not reset** | Reset to `[]` |
+
+---
+
+## Fix: `update_score` applies consistent −5 penalty for incorrect guesses
+
+**File:** `app.py`, lines 49–66
+
+### What was wrong
+
+The original scoring logic had separate branches for `"Too High"` and `"Too Low"` with inconsistent behavior:
+
+- `"Too Low"` always deducted 5 points (correct intent).
+- `"Too High"` used `attempt_number % 2 == 0` to decide the penalty:
+  - On even-numbered attempts: **added** 5 points (a reward for a wrong guess).
+  - On odd-numbered attempts: deducted 5 points.
+
+This meant a player could gain points by guessing too high on the right attempt, which was unintended and noted in the original code as arbitrary.
+
+### What was changed
+
+Both `"Too High"` and `"Too Low"` now unconditionally deduct 5 points:
+
+```python
+# Any incorrect guess (too high or too low) costs 5 points equally.
+if outcome == "Too High" or outcome == "Too Low":
+    return current_score - 5
+```
+
+### Summary
+
+| Outcome | Before fix | After fix |
+|---|---|---|
+| `"Too Low"` | −5 points | −5 points |
+| `"Too High"` (even attempt) | **+5 points** | −5 points |
+| `"Too High"` (odd attempt) | −5 points | −5 points |
