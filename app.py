@@ -34,9 +34,9 @@ def check_guess(guess, secret):
 
     try:
         if guess > secret:
-            return "Too High", "📈 Go HIGHER!"
+            return "Too High", "📉 Go LOWER!"  # guess is above secret, so player should go lower
         else:
-            return "Too Low", "📉 Go LOWER!"
+            return "Too Low", "📈 Go HIGHER!"  # guess is below secret, so player should go higher
     except TypeError: #assumes that parse_guess has already run...
         g = str(guess)
         if g == secret:
@@ -166,12 +166,7 @@ if submit:
     else:
         st.session_state.history.append(guess_int)
 
-        # FIXME: Logic breaks here, this seems like an arbitrary mistake 
-        # (why would you only convert to a string sometimes? It should never be a string )
-        if st.session_state.attempts % 2 == 0:
-            secret = str(st.session_state.secret)
-        else:
-            secret = st.session_state.secret
+        secret = st.session_state.secret  # always an int; never convert to str
 
         outcome, message = check_guess(guess_int, secret)
 

@@ -56,6 +56,59 @@ if new_game:
 
 ---
 
+## Fix: `secret` is never converted to a string in the submit handler
+
+**File:** `app.py`, line 169
+
+### What was wrong
+
+The submit handler conditionally converted `secret` to a string on even-numbered attempts:
+
+```python
+if st.session_state.attempts % 2 == 0:
+    secret = str(st.session_state.secret)
+else:
+    secret = st.session_state.secret
+```
+
+This caused `check_guess` to compare an integer guess against a string secret on every other attempt, making correct guesses register as incorrect.
+
+### What was changed
+
+```python
+secret = st.session_state.secret  # always an int; never convert to str
+```
+
+`secret` is now always the integer stored in session state, so comparisons in `check_guess` are consistent.
+
+---
+
+## Fix: hint messages in `check_guess` point in the correct direction
+
+**File:** `app.py`, lines 37–39
+
+### What was wrong
+
+The hint messages were swapped — a guess that was too high told the player to go higher, and vice versa:
+
+```python
+if guess > secret:
+    return "Too High", "📈 Go HIGHER!"  # wrong direction
+else:
+    return "Too Low", "📉 Go LOWER!"    # wrong direction
+```
+
+### What was changed
+
+```python
+if guess > secret:
+    return "Too High", "📉 Go LOWER!"   # guess is above secret, so player should go lower
+else:
+    return "Too Low", "📈 Go HIGHER!"   # guess is below secret, so player should go higher
+```
+
+---
+
 ## Fix: `update_score` applies consistent −5 penalty for incorrect guesses
 
 **File:** `app.py`, lines 49–66
