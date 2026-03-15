@@ -1,69 +1,8 @@
 import random
 import streamlit as st
+from logic_utils import get_range_for_difficulty, parse_guess, check_guess, update_score
 
-def get_range_for_difficulty(difficulty: str):
-    if difficulty == "Easy":
-        return 1, 20
-    if difficulty == "Normal":
-        return 1, 100
-    if difficulty == "Hard":
-        return 1, 50
-    return 1, 100 #this should be eliminated and an exception should be raided 
-
-def parse_guess(raw: str):
-    if raw is None:
-        return False, None, "Enter a guess."
-
-    if raw == "":
-        return False, None, "Enter a guess."
-
-    try:
-        if "." in raw:
-            value = int(float(raw)) #this could be risky -- raw may not be a float 
-        else:
-            value = int(raw) 
-    except Exception:
-        return False, None, "That is not a number." #this should account for it, but I should check 
-
-    return True, value, None #default case 
-
-
-def check_guess(guess, secret):
-    if guess == secret:
-        return "Win", "🎉 Correct!"
-
-    try:
-        if guess > secret:
-            return "Too High", "📉 Go LOWER!"  # guess is above secret, so player should go lower
-        else:
-            return "Too Low", "📈 Go HIGHER!"  # guess is below secret, so player should go higher
-    except TypeError: #assumes that parse_guess has already run...
-        g = str(guess)
-        if g == secret:
-            return "Win", "🎉 Correct!"
-        if g > secret:
-            return "Too High", "📈 Go HIGHER!"
-        return "Too Low", "📉 Go LOWER!"
-
-
-def update_score(current_score: int, outcome: str, attempt_number: int):
-    # Award points for a correct guess; reward fewer attempts with higher points.
-    # Points decrease by 10 for each attempt made, with a floor of 10 so the
-    # player always gains something for an eventual correct guess.
-    if outcome == "Win":
-        points = 100 - 10 * (attempt_number + 1)
-        if points < 10:
-            points = 10
-        return current_score + points
-
-    # Any incorrect guess (too high or too low) costs 5 points equally.
-    # Previously, "Too High" had inconsistent logic that sometimes added points
-    # on even-numbered attempts — that bug has been fixed here.
-    if outcome == "Too High" or outcome == "Too Low":
-        return current_score - 5
-
-    # Unknown outcome — score is unchanged
-    return current_score
+#ongoing problems: i have to submit twice after a win 
 
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 
@@ -95,7 +34,7 @@ if "secret" not in st.session_state:
 
 #FIXME : attemps should start at 0, not 1 
 if "attempts" not in st.session_state:
-    st.session_state.attempts = 0 
+    st.session_state.attempts = 1; 
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -135,7 +74,7 @@ with col3:
 
 if new_game:
     # Reset attempt counter so the player starts fresh
-    st.session_state.attempts = 0
+    st.session_state.attempts = 1
     # Generate a new secret using the current difficulty's range (not hardcoded 1–100)
     st.session_state.secret = random.randint(low, high)
     # Reset score so it doesn't carry over from the previous game
